@@ -237,18 +237,27 @@ En efecto, todo catamorfismo se construye de la misma forma para un tipo algebra
 >   division
 >   negativo
 >   literal
->   = undefined
+>   e
+>   = case e of
+>       Literal        n     -> literal n
+>       Negativo       e     -> negativo (currificada e)
+>       Suma           e1 e2 -> suma (currificada e1) (currificada e2)
+>       Resta          e1 e2 -> resta (currificada e1) (currificada e2)
+>       Multiplicacion e1 e2 -> multiplicacion (currificada e1) (currificada e2)
+>       Division       e1 e2 -> division (currificada e1) (currificada e2)
+>    where currificada = cataExpresion suma resta multiplicacion division negativo literal
 
 ---
 
 **Ejercicio 8** (0.2 puntos cada una; 1 punto en total): Complete las siguientes definiciones para los catamorfismos que definió en las preguntas anteriores, esta vez en términos de `cataExpresión`.
 
 > evaluar' :: Expresion -> Double
-> evaluar' = undefined
+> evaluar' = cataExpresion (+) (-) (*) (/) (negate) (fromInteger)   
 >
 > operaciones' :: Expresion -> Integer
-> operaciones' = undefined
->
+> operaciones' = cataExpresion (aumentar) (aumentar) (aumentar) (aumentar) (+1) (*0)
+>                   where aumentar x y = 1 + x + y
+>       
 > sumaLiterales' :: Expresion -> Integer
 > sumaLiterales' = undefined
 >
