@@ -1,0 +1,292 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[11pt, spanish]{scrartcl}
+
+
+\usepackage[spanish]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+
+\usepackage[spanish]{babel}
+\selectlanguage{spanish}
+\usepackage[utf8]{inputenc}
+
+
+\usepackage{listings}
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+\normalfont \normalsize 
+\textsc{Universidad Simón Bolívar} \\ [25pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Tarea de Investigación 1 \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+
+\author{José Pascarella
+		11-10743} % Your name
+
+\date{\normalsize\today} % Today's date or a custom date
+
+
+\lstdefinelanguage{Lambda}{%
+  morekeywords={%
+    if,then,else,fix % keywords go here
+  },%
+  morekeywords={[2]int},   % types go here
+  otherkeywords={:}, % operators go here
+  literate={% replace strings with symbols
+    {⇒}{{$\implies$}}{2}
+    {λ}{{$\lambda$}}{1}
+    {==}{{$\equiv$}}{1}
+  },
+  basicstyle={\sffamily},
+  keywordstyle={\bfseries},
+  keywordstyle={[2]\itshape}, % style for types
+  keepspaces,
+  mathescape % optional
+}[keywords,comments,strings]%
+
+
+
+\begin{document}
+
+\maketitle % Print the title
+
+
+
+%----------------------------------------------------------------------------------------
+%	PROBLEMA 1
+%----------------------------------------------------------------------------------------
+
+
+\section{Estrategias de Evaluación}
+
+% 1.1
+\subsection{Orden Aplicativo}
+
+\begin{lstlisting}[language=Lambda]
+(λo.K) ((λf.f f) (λf.λx.f [f x]) A H)
+⇒  (λo.K) ((λf.λx.f [f x]) (λf.λx.f [f x]) A H)
+⇒  (λo.K) ((λx.[λf.λi0.f (f i0)] [(λf.λi0.f (f i0)) x]) A H)
+⇒  (λo.K) ((λf.λx.f [f x]) ([λf.λx.f (f x)] A) H)
+⇒  (λo.K) ((λf.λx.f [f x]) (λx.A [A x]) H)
+⇒  (λo.K) ((λx.[λi0.A (A i0)] [(λi0.A (A i0)) x]) H)
+⇒  (λo.K) ((λx.A [A x]) ([λx.A (A x)] H))
+⇒  (λo.K) ((λx.A [A x]) (A [A H]))
+⇒  (λo.K) (A (A [A (A H)]))
+⇒  K
+\end{lstlisting}
+
+
+% 1.2
+\subsection{Orden Normal}
+
+\begin{lstlisting}[language=Lambda]
+(λo.K) ((λf.f f) (λf.λx.f [f x]) A H)
+⇒  K
+\end{lstlisting}
+
+\newpage
+
+% 1.3
+\subsection{Orden de Aplicación}
+
+Se puede notar con este ejemplo que el orden de reducción usado puede afectar en el resultado, usando el método aplicativo
+no terminaria nunca, dado que el término se sigue agrandando.
+
+\begin{lstlisting}[language=Lambda]
+(λx.z) ((λw.w w w) (λw.w w w))
+⇒  (λx.z) ((λw.w w w) (λw.w w w) (λw.w w w))
+⇒  (λx.z) ((λw.w w w) (λw.w w w) (λw.w w w) (λw.w w w))
+⇒  (λx.z) ((λw.w w w) (λw.w w w) (λw.w w w) (λw.w w w) (λw.w w w))
+⇒  ...
+\end{lstlisting}
+
+En cambio usando el metodo normal se llega rápidamente a la forma normal de la expresión.
+
+\begin{lstlisting}[language=Lambda]
+(λx.z) ((λw.w w w) (λw.w w w))
+⇒  z
+\end{lstlisting}
+
+
+% 1.4
+\subsection{Teorema Church-Rosser}
+
+No existe dicho término, dado que el teorema Church-Rosser asegura que para cualquier 
+expresión del \( \lambda \)-cálculo, si existe una forma normal, es única.
+
+% 1.5
+\subsection{Termino sin forma Normal}
+
+En el siguiente término se puede apreciar que no existe una forma normal posible, si seguimos aplicando \( \beta \)-reducciones
+obtendremos el mismo término que se tenia al comienzo.
+
+\begin{lstlisting}[language=Lambda]
+(λf.f f) (λf.f f)
+⇒  (λf.f f) (λf.f f)
+⇒  ...   
+⇒  (λf.f f) (λf.f f)
+\end{lstlisting}
+
+\newpage
+%----------------------------------------------------------------------------------------
+%	PROBLEM 2
+%----------------------------------------------------------------------------------------
+
+\section{Codificación de Church}
+
+\subsection{Pares}
+
+\subsubsection{Definición de swap}
+
+Se define la función swap que recibe un par y devuelve el par invertido.
+
+\begin{lstlisting}[language=Lambda]
+swap == λt.(pair (second t) (first t))
+\end{lstlisting}
+
+\subsubsection{Forma normal de swap}
+
+\begin{lstlisting}[language=Lambda]
+λt.pair (second t) (first t)
+⇒  λt.(λb.λc.c (second t) b) (first t)
+⇒  λt.λc.c (second t) (first t)
+⇒  λt.λc.c (t (λa.λb.b)) (first t)
+⇒  λt.λc.c (t (λa.λb.b)) (t (λa.λb.a))
+
+swap == λt.λc.c (t (λa.λb.b)) (t (λa.λb.a))
+\end{lstlisting}
+
+\subsection{Lógica Proposicional}
+
+\subsubsection{Definiciones de los operadores lógicos}
+
+\begin{lstlisting}[language=Lambda]
+false  ==  λx.λy.y	
+true  ==  λx.λy.x	
+and  ==  λp.λq.p q p	
+not  ==  λp.λa.λb.p b a	
+or  ==  λp.λq.p p q
+\end{lstlisting}
+
+\subsubsection{Uso de los operadores propuestos}
+
+\begin{lstlisting}[language=Lambda]
+or False (not False)
+⇒  False False (not False)
+⇒  (λy.y) (not False)
+⇒  not False
+⇒  λa.λb.False b a
+⇒  λa.λb.(λy.y) a
+⇒  λa.λb.a	
+⇒  True
+\end{lstlisting}
+
+\newpage
+%----------------------------------------------------------------------------------------
+%	PROBLEM 3
+%----------------------------------------------------------------------------------------
+
+\subsection{Aritmética}
+
+\subsubsection{Definición de add}
+
+Función que toma como parámetro dos números en forma \( \lambda \).
+\begin{lstlisting}[language=Lambda]
+add == λm.λn.λf.λx.m f (n f x)
+\end{lstlisting}
+
+\subsubsection{Uso de add}
+
+Término equivalente al natural 3:
+\begin{lstlisting}[language=Lambda]
+succ (succ (succ zero))
+⇒  λf.λz.succ (succ zero) f (f z)
+⇒  λf.λz.(λi0.λi1.succ zero i0 (i0 i1)) f (f z)
+⇒  λf.λz.(λi0.succ zero f (f i0)) (f z)
+⇒  λf.λz.succ zero f (f (f z))
+⇒  λf.λz.(λi0.λi1.zero i0 (i0 i1)) f (f (f z))
+⇒  λf.λz.(λi0.zero f (f i0)) (f (f z))
+⇒  λf.λz.zero f (f (f [f z]))
+⇒  λf.λz.(λi0.i0) (f (f [f z]))
+⇒  λf.λz.f (f (f z))
+\end{lstlisting}
+
+Suma de 1 + 2:
+\begin{lstlisting}[language=Lambda]
+add (succ zero) (succ (succ zero))
+⇒  (λn.λf.λx.succ zero f (n f x)) (succ (succ zero))
+⇒  λf.λx.succ zero f (succ (succ zero) f x)
+⇒  λf.λx.(λi0.λz.zero i0 (i0 z)) f (succ (succ zero) f x)
+⇒  λf.λx.(λz.zero f (f z)) (succ (succ zero) f x)
+⇒  λf.λx.zero f (f (succ [succ zero] f x))
+⇒  λf.λx.(λz.z) (f (succ [succ zero] f x))
+⇒  λf.λx.f (succ (succ zero) f x)
+⇒  λf.λx.f ((λi0.λz.succ zero i0 [i0 z]) f x)
+⇒  λf.λx.f ((λz.succ zero f [f z]) x)
+⇒  λf.λx.f (succ zero f (f x))
+⇒  λf.λx.f ((λi0.λz.zero i0 [i0 z]) f (f x))
+⇒  λf.λx.f ((λz.zero f [f z]) (f x))
+⇒  λf.λx.f (zero f (f [f x]))
+⇒  λf.λx.f ((λz.z) (f [f x]))
+⇒  λf.λx.f (f (f x))
+\end{lstlisting}
+
+\( \alpha \)-equivalente al número 3.
+
+\newpage
+
+%----------------------------------------------------------------------------------------
+%	PROBLEM 4
+%----------------------------------------------------------------------------------------
+
+\subsection{Listas}
+
+Definición de la función length que recibe una lista y devuelve el número de elementos que 
+posee.
+\begin{lstlisting}[language=Lambda]
+length == λL.L (λh.succ) nil
+
+length == λL.L (λh.λn.λf.λz.n f (f z)) (λf.λz.z)
+\end{lstlisting}
+
+\end{document}
