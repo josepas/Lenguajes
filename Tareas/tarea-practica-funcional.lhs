@@ -61,17 +61,17 @@ En esta sección puede agregar todas las directivas necesarias para importar sí
 
 
 
-Expresiones aritméticas
+Expresiónes aritméticas
 =======================
 
 Considere la siguiente declaración de un tipo algebráico para representar expresiones aritméticas con números de punto flotante:
 
-> data Expresion
->   = Suma           Expresion Expresion
->   | Resta          Expresion Expresion
->   | Multiplicacion Expresion Expresion
->   | Division       Expresion Expresion
->   | Negativo       Expresion
+> data Expresión
+>   = Suma           Expresión Expresión
+>   | Resta          Expresión Expresión
+>   | Multiplicación Expresión Expresión
+>   | División       Expresión Expresión
+>   | Negativo       Expresión
 >   | Literal        Integer
 >   deriving (Eq, Read, Show)
 
@@ -85,11 +85,11 @@ Considere la siguiente declaración de un tipo algebráico para representar expr
 `t3`   =  `(t2 * (t2 * 1)) + (- ((t1 + 0) / 3))`
 ----- --- ---
 
-> t1, t2, t3 :: Expresion
+> t1, t2, t3 :: Expresión
 > t1 = Literal 42
 > t2 = Suma (Literal 27) t1
-> t3 = Suma (Multiplicacion t2 (Multiplicacion t2 (Literal 1))) 
->           (Negativo (Division (Suma t1 (Literal 0))(Literal 3)))
+> t3 = Suma (Multiplicación t2 (Multiplicación t2 (Literal 1))) 
+>           (Negativo (División (Suma t1 (Literal 0))(Literal 3)))
 
 ---
 
@@ -110,13 +110,13 @@ En el contexto de *Haskell*, un **catamorfismo** es cualquier transformación de
 
 %Aqui tenia Double entonces resolvi con fromInteger
 
-> evaluar :: Expresion -> Double
+> evaluar :: Expresión -> Double
 > evaluar e
 >   = case e of
 >       Suma           e1 e2 -> evaluar e1 + evaluar e2
 >       Resta          e1 e2 -> evaluar e1 - evaluar e2
->       Multiplicacion e1 e2 -> evaluar e1 * evaluar e2
->       Division       e1 e2 -> evaluar e1 / evaluar e2
+>       Multiplicación e1 e2 -> evaluar e1 * evaluar e2
+>       División       e1 e2 -> evaluar e1 / evaluar e2
 >       Negativo       e     -> evaluar e * (-1)
 >       Literal        n     -> fromInteger n
 
@@ -130,15 +130,15 @@ En particular,
 
 **Ejercicio 3** (0.25 puntos): Complete la siguiente definición que calcule la cantidad de operaciones aritméticas especificadas en una expresión aritmética.  Se considera que la expresión correspondiente a un simple literal especifica cero operaciones.
 
-> operaciones :: Expresion -> Integer
+> operaciones :: Expresión -> Integer
 > operaciones e 
 >   = case e of
 >       Literal        n     -> 0
 >       Negativo       e     -> 1 + operaciones e
 >       Suma           e1 e2 -> 1 + operaciones e1 + operaciones e2
 >       Resta          e1 e2 -> 1 + operaciones e1 + operaciones e2
->       Multiplicacion e1 e2 -> 1 + operaciones e1 + operaciones e2
->       Division       e1 e2 -> 1 + operaciones e1 + operaciones e2
+>       Multiplicación e1 e2 -> 1 + operaciones e1 + operaciones e2
+>       División       e1 e2 -> 1 + operaciones e1 + operaciones e2
 
 En particular,
 
@@ -150,15 +150,15 @@ En particular,
 
 **Ejercicio 4** (0.25 puntos): Complete la siguiente definición que calcule la suma de todos los literales presentes en una expresión aritmética.
 
-> sumaLiterales :: Expresion -> Integer
+> sumaLiterales :: Expresión -> Integer
 > sumaLiterales e
 >   = case e of
 >       Literal        n     -> n
 >       Negativo       e     -> sumaLiterales e
 >       Suma           e1 e2 -> sumaLiterales e1 + sumaLiterales e2
 >       Resta          e1 e2 -> sumaLiterales e1 + sumaLiterales e2
->       Multiplicacion e1 e2 -> sumaLiterales e1 + sumaLiterales e2
->       Division       e1 e2 -> sumaLiterales e1 + sumaLiterales e2
+>       Multiplicación e1 e2 -> sumaLiterales e1 + sumaLiterales e2
+>       División       e1 e2 -> sumaLiterales e1 + sumaLiterales e2
 
 En particular,
 
@@ -170,15 +170,15 @@ En particular,
 
 **Ejercicio 5** (0.25 puntos): Complete la siguiente definición que calcule la lista de todos los literales presentes en una expresión aritmética.
 
-> literales :: Expresion -> [Integer]
+> literales :: Expresión -> [Integer]
 > literales e
 >   = case e of
 >       Literal        n     -> n:[]
 >       Negativo       e     -> literales e
 >       Suma           e1 e2 -> literales e1 ++ literales e2
 >       Resta          e1 e2 -> literales e1 ++ literales e2
->       Multiplicacion e1 e2 -> literales e1 ++ literales e2
->       Division       e1 e2 -> literales e1 ++ literales e2
+>       Multiplicación e1 e2 -> literales e1 ++ literales e2
+>       División       e1 e2 -> literales e1 ++ literales e2
 
 En particular,
 
@@ -190,15 +190,15 @@ En particular,
 
 **Ejercicio 6** (0.25 puntos): Complete la siguiente definición que calcule la altura de una expresión aritmética.  Se considera que un literal es una expresión aritmética de altura cero, y que todas las demás operaciones agregan uno a la altura.
 
-> altura :: Expresion -> Integer
+> altura :: Expresión -> Integer
 > altura e
 >   = case e of
 >       Literal        n     -> 0
 >       Negativo       e     -> 1 + altura e
 >       Suma           e1 e2 -> 1 + max (altura e1) (altura e2)
 >       Resta          e1 e2 -> 1 + max (altura e1) (altura e2)
->       Multiplicacion e1 e2 -> 1 + max (altura e1) (altura e2)
->       Division       e1 e2 -> 1 + max (altura e1) (altura e2)
+>       Multiplicación e1 e2 -> 1 + max (altura e1) (altura e2)
+>       División       e1 e2 -> 1 + max (altura e1) (altura e2)
 
 En particular,
 
@@ -221,16 +221,16 @@ En efecto, todo catamorfismo se construye de la misma forma para un tipo algebra
 
 **Ejercicio 7** (0.5 puntos): Complete la siguiente definición para el catamorfismo generalizado del tipo `Expresión`.
 
-> cataExpresion
+> cataExpresión
 >   :: (a -> a -> a)
 >   -> (a -> a -> a)
 >   -> (a -> a -> a)
 >   -> (a -> a -> a)
 >   -> (a -> a)
 >   -> (Integer -> a)
->   -> Expresion -> a
+>   -> Expresión -> a
 >
-> cataExpresion
+> cataExpresión
 >   suma
 >   resta
 >   multiplicacion
@@ -243,29 +243,29 @@ En efecto, todo catamorfismo se construye de la misma forma para un tipo algebra
 >       Negativo       e     -> negativo (currificada e)
 >       Suma           e1 e2 -> suma (currificada e1) (currificada e2)
 >       Resta          e1 e2 -> resta (currificada e1) (currificada e2)
->       Multiplicacion e1 e2 -> multiplicacion (currificada e1) (currificada e2)
->       Division       e1 e2 -> division (currificada e1) (currificada e2)
->    where currificada = cataExpresion suma resta multiplicacion division negativo literal
+>       Multiplicación e1 e2 -> multiplicacion (currificada e1) (currificada e2)
+>       División       e1 e2 -> division (currificada e1) (currificada e2)
+>    where currificada = cataExpresión suma resta multiplicacion division negativo literal
 
 ---
 
 **Ejercicio 8** (0.2 puntos cada una; 1 punto en total): Complete las siguientes definiciones para los catamorfismos que definió en las preguntas anteriores, esta vez en términos de `cataExpresión`.
 
-> evaluar' :: Expresion -> Double
-> evaluar' = cataExpresion (+) (-) (*) (/) (negate) (fromInteger)   
+> evaluar' :: Expresión -> Double
+> evaluar' = cataExpresión (+) (-) (*) (/) (negate) (fromInteger)   
 >
-> operaciones' :: Expresion -> Integer
-> operaciones' = cataExpresion (aumentar) (aumentar) (aumentar) (aumentar) (+1) (*0)
+> operaciones' :: Expresión -> Integer
+> operaciones' = cataExpresión (aumentar) (aumentar) (aumentar) (aumentar) (+1) (*0)
 >                   where aumentar x y = 1 + x + y
 >       
-> sumaLiterales' :: Expresion -> Integer
-> sumaLiterales' = cataExpresion (+) (+) (+) (+) (id) (id)
+> sumaLiterales' :: Expresión -> Integer
+> sumaLiterales' = cataExpresión (+) (+) (+) (+) (id) (id)
 >
-> literales' :: Expresion -> [Integer]
-> literales' = cataExpresion (++) (++) (++) (++) (id) (:[])
+> literales' :: Expresión -> [Integer]
+> literales' = cataExpresión (++) (++) (++) (++) (id) (:[])
 >
-> altura' :: Expresion -> Integer
-> altura' = cataExpresion (aumentar) (aumentar) (aumentar) (aumentar) (1+) (*0)
+> altura' :: Expresión -> Integer
+> altura' = cataExpresión (aumentar) (aumentar) (aumentar) (aumentar) (1+) (*0)
 >               where aumentar x y = 1 + max x y
 
 
@@ -407,7 +407,7 @@ Las operaciones aritméticas deben representarse con un elemento `div` que conte
 
 Escriba su definición en términos de `cataExpresión` y utilice los combinadores para elementos de XHTML que definió previamente.
 
-> expresionXHTML :: Expresion -> Elemento
+> expresionXHTML :: Expresión -> Elemento
 > expresionXHTML e
 >   = case e of
 >       Literal        n     -> Elemento "p" empty [Texto (show n)]
@@ -422,11 +422,11 @@ Escriba su definición en términos de `cataExpresión` y utilice los combinador
 >                                                     Elemento "p" empty [Texto "-"],
 >                                                     expresionXHTML e2]
 >
->       Multiplicacion e1 e2 -> Elemento "div" empty [expresionXHTML e1,
+>       Multiplicación e1 e2 -> Elemento "div" empty [expresionXHTML e1,
 >                                                     Elemento "p" empty [Texto "*"],
 >                                                     expresionXHTML e2]
 >
->       Division       e1 e2 -> Elemento "div" empty [expresionXHTML e1,
+>       División       e1 e2 -> Elemento "div" empty [expresionXHTML e1,
 >                                                     Elemento "p" empty [Texto "/"],
 >                                                     expresionXHTML e2]
 
@@ -457,14 +457,14 @@ Antes de cada una de esas secciones, incluya un elemento `h1` con el nombre de l
 
 [^t3xhtml]: Ese ejemplo fue generado a partir de la expresión `t3`.
 
-> expresiónDocumento :: Expresion -> Documento
+> expresiónDocumento :: Expresión -> Documento
 > expresiónDocumento e = Documento (htmlE [headE [titleE "Expresión", styleE estilo], 
->                                          bodyE [h1E "Expresión Original", pE (show e), 
+>                                          bodyE [h1E "Expresión original", showP e, 
 >                                                 h1E "Estructura", expresionXHTML e,
->                                                 h1E "Valor", pE (show (evaluar' e)),
->                                                 h1E "Altura", pE (show (altura' e)),
->                                                 h1E "Número de operaciones", pE (show (operaciones e)),
->                                                 h1E "Literales", pE (show (literales' e))]
+>                                                 h1E "Valor", showP (evaluar' e),
+>                                                 h1E "Altura", showP (altura' e),
+>                                                 h1E "Número de operaciones", showP (operaciones e),
+>                                                 h1E "Literales", showP (literales' e)]
 >                                   ])
 
 La siguiente definición contiene el texto necesario a incluir en el elemento `style` del documento a generar.  El elemento `style` con este contenido debe ser incluido en el elemento `head` del documento generado.
@@ -493,8 +493,8 @@ Programa principal
 
 Se define un programa principal para poder compilar y ejecutar este archivo:
 
-> deriving instance Generic Expresion
-> instance NFData Expresion
+> deriving instance Generic Expresión
+> instance NFData Expresión
 >
 > main :: IO ()
 > main = do
