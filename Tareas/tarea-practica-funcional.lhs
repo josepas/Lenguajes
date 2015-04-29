@@ -54,7 +54,7 @@ En esta sección puede agregar todas las directivas necesarias para importar sí
 > import Control.Applicative (pure)
 > import Control.DeepSeq     (NFData, ($!!))
 > import Control.Monad       (void)
-> import Data.Map            (Map, empty, singleton, fromList)
+> import Data.Map            (Map, empty, singleton, fromList, foldWithKey)
 > import GHC.Generics        (Generic)
 > import System.Environment  (getArgs, getProgName)
 > import System.IO           (hPutStrLn, stderr)
@@ -347,9 +347,7 @@ Se desea usar el método `render` para generar texto XHTML a partir de un valor 
 
 > instance RenderXHTML Documento where
 >   render (Documento raiz)
->       = case raiz of 
->           Texto s -> s
->           Elemento s a xs -> "<" ++ s ++ " " ++ render a ++ ">"  ++ (concat (map render xs))  ++ "</" ++ s ++ ">"    
+>       = render raiz    
 
 
 ---
@@ -371,10 +369,10 @@ debe generar el texto
 El orden en que genere las especificaciones de atributos es irrelevante.
 
 > instance RenderXHTML Atributos where
->   render = undefined
+>   render = foldWithKey f "" 
+>            where f k v acc = acc ++ " " ++ k ++ "='" ++ v ++ "'"
 >
-> let f key x = key ++ "=" ++ "'" ++ x ++ "'"  
-> mapWithKey f 
+
 
 ---
 
@@ -387,7 +385,10 @@ El texto generado debe corresponder a una etiqueta XHTML para el elemento dado. 
 o cualquier texto con el mismo significado en XHTML — el espacio en blanco, por ejemplo, es irrelevante.
 
 > instance RenderXHTML Elemento where
->   render = undefined
+>   render e 
+>     = case e of 
+>           Texto s -> s
+>           Elemento s a xs -> "<" ++ s ++ render a ++ ">"  ++ (concat (map render xs))  ++ "</" ++ s ++ ">" 
 
 
 
@@ -406,8 +407,28 @@ Las operaciones aritméticas deben representarse con un elemento `div` que conte
 
 Escriba su definición en términos de `cataExpresión` y utilice los combinadores para elementos de XHTML que definió previamente.
 
-> expresiónXHTML :: Expresion -> Elemento
-> expresiónXHTML = undefined
+> expresionXHTML :: Expresion -> Elemento
+> expresionXHTML e
+>   = case e of
+>       Literal        n     -> Elemento "p" empty [Texto (show n)]
+>       Negativo       e     -> Elemento "div" empty [Elemento "p" empty [Texto "-"],
+>                                                     expresionXHTML e]
+>
+>       Suma           e1 e2 -> Elemento "div" empty [expresionXHTML e1,
+>                                                     Elemento "p" empty [Texto "+"],
+>                                                     expresionXHTML e2]
+>
+>       Resta          e1 e2 -> Elemento "div" empty [expresionXHTML e1,
+>                                                     Elemento "p" empty [Texto "-"],
+>                                                     expresionXHTML e2]
+>
+>       Multiplicacion e1 e2 -> Elemento "div" empty [expresionXHTML e1,
+>                                                     Elemento "p" empty [Texto "*"],
+>                                                     expresionXHTML e2]
+>
+>       Division       e1 e2 -> Elemento "div" empty [expresionXHTML e1,
+>                                                     Elemento "p" empty [Texto "/"],
+>                                                     expresionXHTML e2]
 
 Por ejemplo, el resultado de `expresiónXHTML t2` debería ser igual al de
 
@@ -437,7 +458,14 @@ Antes de cada una de esas secciones, incluya un elemento `h1` con el nombre de l
 [^t3xhtml]: Ese ejemplo fue generado a partir de la expresión `t3`.
 
 > expresiónDocumento :: Expresion -> Documento
-> expresiónDocumento e = undefined
+> expresiónDocumento e = Documento (htmlE [headE [titleE "Expresión", styleE estilo], 
+>                                          bodyE [h1E "Expresión Original", pE (show e), 
+>                                                 h1E "Estructura", expresionXHTML e,
+>                                                 h1E "Valor", pE (show (evaluar' e)),
+>                                                 h1E "Altura", pE (show (altura' e)),
+>                                                 h1E "Número de operaciones", pE (show (operaciones e)),
+>                                                 h1E "Literales", pE (show (literales' e))]
+>                                   ])
 
 La siguiente definición contiene el texto necesario a incluir en el elemento `style` del documento a generar.  El elemento `style` con este contenido debe ser incluido en el elemento `head` del documento generado.
 
