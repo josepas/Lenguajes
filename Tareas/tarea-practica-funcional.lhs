@@ -410,25 +410,12 @@ Escriba su definición en términos de `cataExpresión` y utilice los combinador
 > expresionXHTML :: Expresión -> Elemento
 > expresionXHTML e
 >   = case e of
->       Literal        n     -> Elemento "p" empty [Texto (show n)]
->       Negativo       e     -> Elemento "div" empty [Elemento "p" empty [Texto "-"],
->                                                     expresionXHTML e]
->
->       Suma           e1 e2 -> Elemento "div" empty [expresionXHTML e1,
->                                                     Elemento "p" empty [Texto "+"],
->                                                     expresionXHTML e2]
->
->       Resta          e1 e2 -> Elemento "div" empty [expresionXHTML e1,
->                                                     Elemento "p" empty [Texto "-"],
->                                                     expresionXHTML e2]
->
->       Multiplicación e1 e2 -> Elemento "div" empty [expresionXHTML e1,
->                                                     Elemento "p" empty [Texto "*"],
->                                                     expresionXHTML e2]
->
->       División       e1 e2 -> Elemento "div" empty [expresionXHTML e1,
->                                                     Elemento "p" empty [Texto "/"],
->                                                     expresionXHTML e2]
+>       Literal        n     -> showP n
+>       Negativo       e     -> divE [pE "-", expresionXHTML e]
+>       Suma           e1 e2 -> divE [expresionXHTML e1, pE "+", expresionXHTML e2]
+>       Resta          e1 e2 -> divE [expresionXHTML e1, pE "-", expresionXHTML e2]
+>       Multiplicación e1 e2 -> divE [expresionXHTML e1, pE "*", expresionXHTML e2]
+>       División       e1 e2 -> divE [expresionXHTML e1, pE "/", expresionXHTML e2]
 
 Por ejemplo, el resultado de `expresiónXHTML t2` debería ser igual al de
 
