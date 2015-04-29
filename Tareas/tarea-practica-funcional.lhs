@@ -259,13 +259,14 @@ En efecto, todo catamorfismo se construye de la misma forma para un tipo algebra
 >                   where aumentar x y = 1 + x + y
 >       
 > sumaLiterales' :: Expresion -> Integer
-> sumaLiterales' = undefined
+> sumaLiterales' = cataExpresion (+) (+) (+) (+) (id) (id)
 >
 > literales' :: Expresion -> [Integer]
-> literales' = undefined
+> literales' = cataExpresion (++) (++) (++) (++) (id) (:[])
 >
 > altura' :: Expresion -> Integer
-> altura' = undefined
+> altura' = cataExpresion (aumentar) (aumentar) (aumentar) (aumentar) (1+) (*0)
+>               where aumentar x y = 1 + max x y
 
 
 
