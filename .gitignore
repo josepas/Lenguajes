@@ -14,3 +14,7 @@ cabal.sandbox.config
 *.prof
 *.aux
 *.hp
+Proyecto1/mosaico-bin/Setup.hs
+Proyecto1/mosaico-bin/default.nix
+Proyecto1/mosaico-bin/mosaico-bin.cabal
+Proyecto1/mosaico-bin/shell.nix
