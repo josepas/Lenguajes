@@ -1,0 +1,722 @@
+Integrantes del grupo:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  11-10428
+  \href{mailto:gustavogut1993@gmail.com}{gustavogut1993@gmail.com}
+\item
+  11-10743 \href{mailto:josepas979@gmail.com}{josepas979@gmail.com}
+\end{itemize}
+
+\section{Introducción}\label{introducciuxf3n}
+
+Este documento soporta la tarea práctica de programación funcional para
+CI3661 (el Laboratorio de Lenguajes de Programación 1) en Abril--Julio
+de 2015.
+
+Puede cargar la fuente de este archivo en GHCi directamente con el
+comando:
+
+\begin{verbatim}
+ghci tarea-practica-funcional
+\end{verbatim}
+
+\subsection{Declaraciones
+preliminares}\label{declaraciones-preliminares}
+
+En esta sección puede agregar todas las directivas necesarias para
+importar símbolos de módulos adicionales a \texttt{Prelude} (que se
+importa implícitamente) y para dar opciones al compilador.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{\{-# LANGUAGE DeriveGeneric #-\}}
+\OtherTok{\{-# LANGUAGE FlexibleInstances #-\}}
+\end{Highlighting}
+\end{Shaded}
+
+\%\{-\# LANGUAGE LambdaCase \#-\}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{\{-# LANGUAGE StandaloneDeriving #-\}}
+\OtherTok{\{-# LANGUAGE TypeSynonymInstances #-\}}
+
+\KeywordTok{import }\DataTypeTok{Control.Applicative} \NormalTok{(pure)}
+\KeywordTok{import }\DataTypeTok{Control.DeepSeq}     \NormalTok{(}\DataTypeTok{NFData}\NormalTok{, ($!!))}
+\KeywordTok{import }\DataTypeTok{Control.Monad}       \NormalTok{(void)}
+\KeywordTok{import }\DataTypeTok{Data.Map}            \NormalTok{(}\DataTypeTok{Map}\NormalTok{, empty, singleton, fromList, foldWithKey)}
+\KeywordTok{import }\DataTypeTok{GHC.Generics}        \NormalTok{(}\DataTypeTok{Generic}\NormalTok{)}
+\KeywordTok{import }\DataTypeTok{System.Environment}  \NormalTok{(getArgs, getProgName)}
+\KeywordTok{import }\DataTypeTok{System.IO}           \NormalTok{(hPutStrLn, stderr)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Expresiónes aritméticas}\label{expresiuxf3nes-aritmuxe9ticas}
+
+Considere la siguiente declaración de un tipo algebráico para
+representar expresiones aritméticas con números de punto flotante:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \NormalTok{Expresión}
+  \NormalTok{= Suma           Expresión Expresión}
+  \NormalTok{| Resta          Expresión Expresión}
+  \NormalTok{| Multiplicación Expresión Expresión}
+  \NormalTok{| División       Expresión Expresión}
+  \NormalTok{| Negativo       Expresión}
+  \FunctionTok{|} \DataTypeTok{Literal}        \DataTypeTok{Integer}
+  \KeywordTok{deriving} \NormalTok{(}\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Read}\NormalTok{, }\DataTypeTok{Show}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 1} (0.2 puntos cada una; 0.6 puntos en total):
+Complete las siguientes definiciones para que \texttt{t1}, \texttt{t2} y
+\texttt{t3} representen a las respectivas expresiones aritméticas:
+
+\begin{longtable}[c]{@{}lcl@{}}
+\toprule\addlinespace
+\texttt{t1} & = & \texttt{42}
+\\\addlinespace
+\texttt{t2} & = & \texttt{27 + t1}
+\\\addlinespace
+\texttt{t3} & = & \texttt{(t2 * (t2 * 1)) + (- ((t1 + 0) / 3))}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{t1, t2, t3 :: Expresión}
+\NormalTok{t1 }\FunctionTok{=} \DataTypeTok{Literal} \DecValTok{42}
+\NormalTok{t2 }\FunctionTok{=} \DataTypeTok{Suma} \NormalTok{(}\DataTypeTok{Literal} \DecValTok{27}\NormalTok{) t1}
+\NormalTok{t3 = Suma (Multiplicación t2 (Multiplicación t2 (}\DataTypeTok{Literal} \DecValTok{1}\NormalTok{))) }
+          \NormalTok{(Negativo (División (}\DataTypeTok{Suma} \NormalTok{t1 (}\DataTypeTok{Literal} \DecValTok{0}\NormalTok{))(}\DataTypeTok{Literal} \DecValTok{3}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\subsection{Catamorfismos}\label{catamorfismos}
+
+Los valores de cada tipo algebraico en \emph{Haskell} son datos que
+representan la estructura abstracta de una operación, sin especificar
+cuál es la operación particular que debe hacerse. Un valor de un tipo
+algebraico puede analizarse para convertirlo en una operación
+particular: por ejemplo, el valor \texttt{t2} representa la estructura
+abstracta de la operación «la suma de 42 y 27», sin decir qué significa
+«la suma».
+
+Un valor de esta forma puede convertirse en una operación particular de
+varias maneras. Si bien la interpretación más obvia de esa operación
+abstracta corresponde con la suma aritmética de los números 42 y 27, que
+produce un número, también podrían realizarse \emph{otras} operaciones
+siguiendo la misma estructura. Por ejemplo, puede buscarse cuál es el
+máximo operando de todas las operaciones, en cuyo caso la operación
+especificada como «suma» sería tomar el máximo entre dos números, y en
+el caso de \texttt{t2} produciría como resultado el número 42.
+
+En el contexto de \emph{Haskell}, un \textbf{catamorfismo} es cualquier
+transformación de un tipo algebraico a una operación en otro tipo que se
+haga de esta manera: según la estructura del valor del tipo algebraico.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 2} (0.5 puntos): Complete la siguiente definición que
+calcule el resultado de evaluar una expresión aritmética.
+
+\%Aqui tenia Double entonces resolvi con fromInteger
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{evaluar :: Expresión }\OtherTok{->} \DataTypeTok{Double}
+\NormalTok{evaluar e}
+  \FunctionTok{=} \KeywordTok{case} \NormalTok{e }\KeywordTok{of}
+      \DataTypeTok{Suma}           \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{evaluar e1 }\FunctionTok{+} \NormalTok{evaluar e2}
+      \DataTypeTok{Resta}          \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{evaluar e1 }\FunctionTok{-} \NormalTok{evaluar e2}
+      \NormalTok{Multiplicación e1 e2 }\OtherTok{->} \NormalTok{evaluar e1 }\FunctionTok{*} \NormalTok{evaluar e2}
+      \NormalTok{División       e1 e2 }\OtherTok{->} \NormalTok{evaluar e1 }\FunctionTok{/} \NormalTok{evaluar e2}
+      \DataTypeTok{Negativo}       \NormalTok{e     }\OtherTok{->} \NormalTok{evaluar e }\FunctionTok{*} \NormalTok{(}\FunctionTok{-}\DecValTok{1}\NormalTok{)}
+      \DataTypeTok{Literal}        \NormalTok{n     }\OtherTok{->} \NormalTok{fromInteger n}
+\end{Highlighting}
+\end{Shaded}
+
+En particular,
+
+\begin{verbatim}
+evaluar t1 == 42.0
+evaluar t2 == 69.0
+evaluar t3 == 4747.0
+\end{verbatim}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 3} (0.25 puntos): Complete la siguiente definición que
+calcule la cantidad de operaciones aritméticas especificadas en una
+expresión aritmética. Se considera que la expresión correspondiente a un
+simple literal especifica cero operaciones.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{operaciones :: Expresión }\OtherTok{->} \DataTypeTok{Integer}
+\NormalTok{operaciones e }
+  \FunctionTok{=} \KeywordTok{case} \NormalTok{e }\KeywordTok{of}
+      \DataTypeTok{Literal}        \NormalTok{n     }\OtherTok{->} \DecValTok{0}
+      \DataTypeTok{Negativo}       \NormalTok{e     }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{operaciones e}
+      \DataTypeTok{Suma}           \NormalTok{e1 e2 }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{operaciones e1 }\FunctionTok{+} \NormalTok{operaciones e2}
+      \DataTypeTok{Resta}          \NormalTok{e1 e2 }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{operaciones e1 }\FunctionTok{+} \NormalTok{operaciones e2}
+      \NormalTok{Multiplicación e1 e2 }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{operaciones e1 }\FunctionTok{+} \NormalTok{operaciones e2}
+      \NormalTok{División       e1 e2 }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{operaciones e1 }\FunctionTok{+} \NormalTok{operaciones e2}
+\end{Highlighting}
+\end{Shaded}
+
+En particular,
+
+\begin{verbatim}
+operaciones t1 == 0
+operaciones t2 == 1
+operaciones t3 == 8
+\end{verbatim}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 4} (0.25 puntos): Complete la siguiente definición que
+calcule la suma de todos los literales presentes en una expresión
+aritmética.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sumaLiterales :: Expresión }\OtherTok{->} \DataTypeTok{Integer}
+\NormalTok{sumaLiterales e}
+  \FunctionTok{=} \KeywordTok{case} \NormalTok{e }\KeywordTok{of}
+      \DataTypeTok{Literal}        \NormalTok{n     }\OtherTok{->} \NormalTok{n}
+      \DataTypeTok{Negativo}       \NormalTok{e     }\OtherTok{->} \NormalTok{sumaLiterales e}
+      \DataTypeTok{Suma}           \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{sumaLiterales e1 }\FunctionTok{+} \NormalTok{sumaLiterales e2}
+      \DataTypeTok{Resta}          \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{sumaLiterales e1 }\FunctionTok{+} \NormalTok{sumaLiterales e2}
+      \NormalTok{Multiplicación e1 e2 }\OtherTok{->} \NormalTok{sumaLiterales e1 }\FunctionTok{+} \NormalTok{sumaLiterales e2}
+      \NormalTok{División       e1 e2 }\OtherTok{->} \NormalTok{sumaLiterales e1 }\FunctionTok{+} \NormalTok{sumaLiterales e2}
+\end{Highlighting}
+\end{Shaded}
+
+En particular,
+
+\begin{verbatim}
+sumaLiterales t1 == 42
+sumaLiterales t2 == 69
+sumaLiterales t3 == 184
+\end{verbatim}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 5} (0.25 puntos): Complete la siguiente definición que
+calcule la lista de todos los literales presentes en una expresión
+aritmética.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{literales :: Expresión }\OtherTok{->} \NormalTok{[}\DataTypeTok{Integer}\NormalTok{]}
+\NormalTok{literales e}
+  \FunctionTok{=} \KeywordTok{case} \NormalTok{e }\KeywordTok{of}
+      \DataTypeTok{Literal}        \NormalTok{n     }\OtherTok{->} \NormalTok{n}\FunctionTok{:}\NormalTok{[]}
+      \DataTypeTok{Negativo}       \NormalTok{e     }\OtherTok{->} \NormalTok{literales e}
+      \DataTypeTok{Suma}           \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{literales e1 }\FunctionTok{++} \NormalTok{literales e2}
+      \DataTypeTok{Resta}          \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{literales e1 }\FunctionTok{++} \NormalTok{literales e2}
+      \NormalTok{Multiplicación e1 e2 }\OtherTok{->} \NormalTok{literales e1 }\FunctionTok{++} \NormalTok{literales e2}
+      \NormalTok{División       e1 e2 }\OtherTok{->} \NormalTok{literales e1 }\FunctionTok{++} \NormalTok{literales e2}
+\end{Highlighting}
+\end{Shaded}
+
+En particular,
+
+\begin{verbatim}
+literales t1 == [42]
+literales t2 == [27, 42]
+literales t3 == [27, 42, 27, 42, 1, 42, 0, 3]
+\end{verbatim}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 6} (0.25 puntos): Complete la siguiente definición que
+calcule la altura de una expresión aritmética. Se considera que un
+literal es una expresión aritmética de altura cero, y que todas las
+demás operaciones agregan uno a la altura.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{altura :: Expresión }\OtherTok{->} \DataTypeTok{Integer}
+\NormalTok{altura e}
+  \FunctionTok{=} \KeywordTok{case} \NormalTok{e }\KeywordTok{of}
+      \DataTypeTok{Literal}        \NormalTok{n     }\OtherTok{->} \DecValTok{0}
+      \DataTypeTok{Negativo}       \NormalTok{e     }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{altura e}
+      \DataTypeTok{Suma}           \NormalTok{e1 e2 }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{max (altura e1) (altura e2)}
+      \DataTypeTok{Resta}          \NormalTok{e1 e2 }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{max (altura e1) (altura e2)}
+      \NormalTok{Multiplicación e1 e2 }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{max (altura e1) (altura e2)}
+      \NormalTok{División       e1 e2 }\OtherTok{->} \DecValTok{1} \FunctionTok{+} \NormalTok{max (altura e1) (altura e2)}
+\end{Highlighting}
+\end{Shaded}
+
+En particular,
+
+\begin{verbatim}
+altura t1 == 0
+altura t2 == 1
+altura t3 == 4
+\end{verbatim}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\subsection{Catamorfismo generalizado}\label{catamorfismo-generalizado}
+
+Los catamorfismos de las preguntas anteriores deben seguir un patrón
+común: cada constructor del tipo \texttt{Expresión} se hace corresponder
+con una operación en el tipo del resultado del catamorfismo. Esas
+operaciones se realizan con los valores almacenados en cada constructor,
+y en el caso de las ocurrencias anidadas de valores del tipo
+\texttt{Expresión}, éstas se transforman a valores del tipo del
+resultado con una invocación recursiva al catamorfismo.
+
+En efecto, todo catamorfismo se construye de la misma forma para un tipo
+algebraico dado --- solo es necesario especificar de qué manera se
+combinan a un valor del tipo resultante los datos obtenidos de cada
+constructor.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 7} (0.5 puntos): Complete la siguiente definición para
+el catamorfismo generalizado del tipo \texttt{Expresión}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cataExpresión}
+\OtherTok{  ::} \NormalTok{(a }\OtherTok{->} \NormalTok{a }\OtherTok{->} \NormalTok{a)}
+  \OtherTok{->} \NormalTok{(a }\OtherTok{->} \NormalTok{a }\OtherTok{->} \NormalTok{a)}
+  \OtherTok{->} \NormalTok{(a }\OtherTok{->} \NormalTok{a }\OtherTok{->} \NormalTok{a)}
+  \OtherTok{->} \NormalTok{(a }\OtherTok{->} \NormalTok{a }\OtherTok{->} \NormalTok{a)}
+  \OtherTok{->} \NormalTok{(a }\OtherTok{->} \NormalTok{a)}
+  \OtherTok{->} \NormalTok{(}\DataTypeTok{Integer} \OtherTok{->} \NormalTok{a)}
+  \NormalTok{-> Expresión }\OtherTok{->} \NormalTok{a}
+
+\NormalTok{cataExpresión}
+  \NormalTok{suma}
+  \NormalTok{resta}
+  \NormalTok{multiplicacion}
+  \NormalTok{division}
+  \NormalTok{negativo}
+  \NormalTok{literal}
+  \NormalTok{e}
+  \FunctionTok{=} \KeywordTok{case} \NormalTok{e }\KeywordTok{of}
+      \DataTypeTok{Literal}        \NormalTok{n     }\OtherTok{->} \NormalTok{literal n}
+      \DataTypeTok{Negativo}       \NormalTok{e     }\OtherTok{->} \NormalTok{negativo (currificada e)}
+      \DataTypeTok{Suma}           \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{suma (currificada e1) (currificada e2)}
+      \DataTypeTok{Resta}          \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{resta (currificada e1) (currificada e2)}
+      \NormalTok{Multiplicación e1 e2 }\OtherTok{->} \NormalTok{multiplicacion (currificada e1) (currificada e2)}
+      \NormalTok{División       e1 e2 }\OtherTok{->} \NormalTok{division (currificada e1) (currificada e2)}
+   \KeywordTok{where} \NormalTok{currificada = cataExpresión suma resta multiplicacion division negativo literal}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 8} (0.2 puntos cada una; 1 punto en total): Complete
+las siguientes definiciones para los catamorfismos que definió en las
+preguntas anteriores, esta vez en términos de \texttt{cataExpresión}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{evaluar}\CharTok{' :: Expresión -> Double}
+\NormalTok{evaluar}\CharTok{' = cataExpresión (+) (-) (*) (/) (negate) (fromInteger)   }
+
+\NormalTok{operaciones}\CharTok{' :: Expresión -> Integer}
+\NormalTok{operaciones}\CharTok{' = cataExpresión (aumentar) (aumentar) (aumentar) (aumentar) (+1) (*0)}
+                  \KeywordTok{where} \NormalTok{aumentar x y }\FunctionTok{=} \DecValTok{1} \FunctionTok{+} \NormalTok{x }\FunctionTok{+} \NormalTok{y}
+      
+\NormalTok{sumaLiterales}\CharTok{' :: Expresión -> Integer}
+\NormalTok{sumaLiterales}\CharTok{' = cataExpresión (+) (+) (+) (+) (id) (id)}
+
+\NormalTok{literales}\CharTok{' :: Expresión -> [Integer]}
+\NormalTok{literales}\CharTok{' = cataExpresión (++) (++) (++) (++) (id) (:[])}
+
+\NormalTok{altura}\CharTok{' :: Expresión -> Integer}
+\NormalTok{altura}\CharTok{' = cataExpresión (aumentar) (aumentar) (aumentar) (aumentar) (1+) (*0)}
+              \KeywordTok{where} \NormalTok{aumentar x y }\FunctionTok{=} \DecValTok{1} \FunctionTok{+} \NormalTok{max x y}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Lenguajes de marcado}\label{lenguajes-de-marcado}
+
+Los lenguajes de marcado descendientes de SGML se utilizan para
+especificar documentos jerárquicos, donde el texto del documento se
+incluye en \emph{elementos} que pueden anidarse y se clasifican según el
+\emph{nombre de etiqueta} de cada uno. Además, los elementos pueden
+asociarse con un diccionario de \emph{atributos} textuales identificados
+por un nombre de atributo.
+
+Puede representarse una versión simplificada de esta idea con los
+siguientes tipos de datos algebraicos de \emph{Haskell}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Atributos}
+  \FunctionTok{=} \DataTypeTok{Map} \DataTypeTok{String} \DataTypeTok{String}
+
+\KeywordTok{newtype} \DataTypeTok{Documento}
+  \FunctionTok{=} \DataTypeTok{Documento} \DataTypeTok{Elemento}
+  \KeywordTok{deriving} \DataTypeTok{Show}
+
+\KeywordTok{data} \DataTypeTok{Elemento}
+  \FunctionTok{=} \DataTypeTok{Elemento} \DataTypeTok{String} \DataTypeTok{Atributos} \NormalTok{[}\DataTypeTok{Elemento}\NormalTok{]}
+  \FunctionTok{|} \DataTypeTok{Texto} \DataTypeTok{String}
+  \KeywordTok{deriving} \DataTypeTok{Show}
+\end{Highlighting}
+\end{Shaded}
+
+Los documentos completos están formados por un elemento como raíz. Los
+elementos pueden tener un nombre de etiqueta, un diccionario de
+atributos (usando el tipo \texttt{Map} definido en el módulo
+\texttt{Data.Map}), y una lista de elementos anidados --- salvo en el
+caso de los elementos que sencillamente contienen texto.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\subsection{Combinadores}\label{combinadores}
+
+\textbf{Ejercicio 9} (0.15 puntos cada una; 0.6 puntos en total):
+Complete las siguientes definiciones para combinadores que produzcan
+representaciones de los elementos de XHTML \texttt{html}, \texttt{head},
+\texttt{body} y \texttt{div} a partir de una lista de elementos anidados
+dentro de ellos. Los elementos resultantes de aplicar estos combinadores
+deben tener diccionarios de atributos vacíos, salvo en el caso del
+elemento \texttt{html}, que debe incluir exactamente un atributo que
+debe llamarse \texttt{xmlns} y asociarse al valor
+\texttt{http://www.w3.org/1999/xhtml}.\footnote{Se utiliza el sufijo
+  \texttt{E} para evitar conflictos con los nombres \texttt{head} y
+  \texttt{div} importados implícitamente desde el módulo
+  \texttt{Prelude} de \emph{Haskell}.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{htmlE, headE, bodyE,}\OtherTok{ divE ::} \NormalTok{[}\DataTypeTok{Elemento}\NormalTok{] }\OtherTok{->} \DataTypeTok{Elemento}
+\NormalTok{htmlE  }\FunctionTok{=} \DataTypeTok{Elemento} \StringTok{"html"} \NormalTok{(singleton }\StringTok{"xmlns"} \StringTok{"http://www.w3.org/1999/xhtml"}\NormalTok{) }
+\NormalTok{headE  }\FunctionTok{=} \DataTypeTok{Elemento} \StringTok{"head"} \NormalTok{empty }
+\NormalTok{bodyE  }\FunctionTok{=} \DataTypeTok{Elemento} \StringTok{"body"} \NormalTok{empty}
+\NormalTok{divE   }\FunctionTok{=} \DataTypeTok{Elemento} \StringTok{"div"}  \NormalTok{empty}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 10} (0.15 puntos cada una; 0.6 puntos en total):
+Complete las siguientes definiciones para combinadores que produzcan
+representaciones de los elementos de XHTML \texttt{title},
+\texttt{style}, \texttt{h1} y \texttt{p} a partir de un \texttt{String}
+con el texto que debe incluirse dentro de ellos. Los elementos
+resultantes de aplicar estos combinadores deben tener diccionarios de
+atributos vacíos, salvo el elemento \texttt{style} que debe tener el
+atributo \texttt{type} asociado al texto \texttt{text/css}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{styleE, titleE,}\OtherTok{ h1E ::} \DataTypeTok{String} \OtherTok{->} \DataTypeTok{Elemento}
+\NormalTok{styleE s }\FunctionTok{=} \DataTypeTok{Elemento} \StringTok{"style"} \NormalTok{(singleton }\StringTok{"type"} \StringTok{"text/css"}\NormalTok{) [}\DataTypeTok{Texto} \NormalTok{s]}
+\NormalTok{titleE s }\FunctionTok{=} \DataTypeTok{Elemento} \StringTok{"title"} \NormalTok{empty [}\DataTypeTok{Texto} \NormalTok{s]}
+\NormalTok{h1E    s }\FunctionTok{=} \DataTypeTok{Elemento} \StringTok{"h1"}    \NormalTok{empty [}\DataTypeTok{Texto} \NormalTok{s]}
+\NormalTok{pE     s }\FunctionTok{=} \DataTypeTok{Elemento} \StringTok{"p"}     \NormalTok{empty [}\DataTypeTok{Texto} \NormalTok{s]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 11} (0.2 puntos): Complete la siguiente definición
+para un combinador que produzca una representación del elemento de XHTML
+\texttt{p} a partir de un valor de cualquier tipo \texttt{a} que
+pertenezca a la clase de tipos \texttt{Show}; el elemento \texttt{p}
+resultante de aplicar este combinador debe contener únicamente un nodo
+de texto cuyo \texttt{String} sea el resultante de aplicar la función
+\texttt{show} al valor pasado como parámetro, y debe tener su
+diccionario de atributos vacío.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{showP ::} \DataTypeTok{Show} \NormalTok{a }\OtherTok{=>} \NormalTok{a }\OtherTok{->} \DataTypeTok{Elemento}
+\NormalTok{showP }\FunctionTok{=} \NormalTok{pE }\FunctionTok{.} \NormalTok{show}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\subsection{Generación de XHTML}\label{generaciuxf3n-de-xhtml}
+
+Considere la siguiente clase de tipos:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{RenderXHTML} \NormalTok{a }\KeywordTok{where}
+\OtherTok{  render ::} \NormalTok{a }\OtherTok{->} \DataTypeTok{String}
+\end{Highlighting}
+\end{Shaded}
+
+Se desea usar el método \texttt{render} para generar texto XHTML a
+partir de un valor de cualquier tipo que sea instancia de esta clase de
+tipos.\footnote{Note que esta clase es estructuralmente idéntica a la
+  clase \texttt{Show} de \emph{Haskell}. Sin embargo, recuerde que el
+  propósito de la clase \texttt{Show} es construir representaciones
+  textuales de valores de \emph{Haskell} para asistir al programador a
+  estudiar un tipo de datos y visualizar sus valores --- la clase
+  \texttt{RenderXHTML}, en cambio, existe para generar código XHTML a
+  partir de algunos tipos de datos que puedan convertirse de esa manera.}
+Para convertir un \texttt{Documento} a su código XHTML, se declara que
+\texttt{Documento} es una instancia de \texttt{RenderXHTML}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{RenderXHTML} \DataTypeTok{Documento} \KeywordTok{where}
+  \NormalTok{render (Documento raíz)}
+    \NormalTok{= encabezado ++ render raíz}
+    \KeywordTok{where}
+      \NormalTok{encabezado}
+        \FunctionTok{=} \NormalTok{unlines}
+          \NormalTok{[ }\StringTok{"<?xml version='1.0' encoding='UTF-8'?>"}
+          \NormalTok{, }\StringTok{"<!DOCTYPE html"}
+          \NormalTok{, }\StringTok{"     PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'"}
+          \NormalTok{, }\StringTok{"     'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"}
+          \NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 12} (1.25 puntos): Escriba una instancia de la clase
+\texttt{RenderXHTML} para el tipo \texttt{Atributos}. Puede suponer que
+las claves de los diccionarios de atributos únicamente contienen nombres
+de atributos válidos para XHTML, y que los valores de atributos no
+contienen entidades ilegales en XHTML ni comillas --- es decir, no es
+necesario que se preocupe por escapar el texto obtenido del diccionario
+de atributos.
+
+El texto generado debe corresponder a la lista de atributos que ocurre
+dentro de una etiqueta XHTML. Por ejemplo, para el diccionario de
+atributos
+
+\begin{longtable}[c]{@{}ll@{}}
+\toprule\addlinespace
+Nombre de atributo & Valor
+\\\addlinespace
+\midrule\endhead
+foo & bar baz
+\\\addlinespace
+quux & meh
+\\\addlinespace
+wtf & wow://such.example.com/amaze/
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+debe generar el texto
+
+\begin{verbatim}
+foo='bar baz' quux='meh' wtf='wow://such.example.com/amaze/'
+\end{verbatim}
+
+El orden en que genere las especificaciones de atributos es irrelevante.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{RenderXHTML} \DataTypeTok{Atributos} \KeywordTok{where}
+  \NormalTok{render }\FunctionTok{=} \NormalTok{foldWithKey f }\StringTok{""} 
+           \KeywordTok{where} \NormalTok{f k v acc }\FunctionTok{=} \NormalTok{acc }\FunctionTok{++} \StringTok{" "} \FunctionTok{++} \NormalTok{k }\FunctionTok{++} \StringTok{"='"} \FunctionTok{++} \NormalTok{v }\FunctionTok{++} \StringTok{"'"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 13} (1.25 puntos): Escriba una instancia de la clase
+\texttt{RenderXHTML} para el tipo \texttt{Elemento}. Puede suponer que
+los nombres de etiquetas de los elementos siempre son válidos para
+XHTML, y que los nodos de texto no contienen entidades ilegales ni
+caracteres reservados por XHTML --- es decir, no es necesario que se
+preocupe por escapar el texto obtenido del elemento.
+
+El texto generado debe corresponder a una etiqueta XHTML para el
+elemento dado. Por ejemplo, para un elemento con el nombre de etiqueta
+\texttt{welp}, y un hijo que sea un nodo textual con el texto
+\texttt{trololololo}, debe generar el texto
+
+\begin{verbatim}
+<welp foo='bar baz' quux='meh' wtf='wow://such.example.com/amaze/'>trololololo</welp>
+\end{verbatim}
+
+o cualquier texto con el mismo significado en XHTML --- el espacio en
+blanco, por ejemplo, es irrelevante.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{RenderXHTML} \DataTypeTok{Elemento} \KeywordTok{where}
+  \NormalTok{render e }
+    \FunctionTok{=} \KeywordTok{case} \NormalTok{e }\KeywordTok{of} 
+          \DataTypeTok{Texto} \NormalTok{s }\OtherTok{->} \NormalTok{s}
+          \DataTypeTok{Elemento} \NormalTok{s a xs }\OtherTok{->} \StringTok{"<"} \FunctionTok{++} \NormalTok{s }\FunctionTok{++} \NormalTok{render a }\FunctionTok{++} \StringTok{">"}  \FunctionTok{++} \NormalTok{(concat (map render xs))  }\FunctionTok{++} \StringTok{"</"} \FunctionTok{++} \NormalTok{s }\FunctionTok{++} \StringTok{">"} 
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\subsection{XHTML para expresiones}\label{xhtml-para-expresiones}
+
+\textbf{Ejercicio 14} (1.25 puntos): Complete la siguiente definición
+que convierta un valor dado del tipo \texttt{Expresión} en un valor del
+tipo \texttt{Elemento} que represente a la estructura de la expresión
+aritmética con un árbol de elementos XHTML.
+
+Los literales numéricos deben representarse con elementos \texttt{p} que
+contengan un nodo de texto con una representación textual del número.
+
+Las operaciones aritméticas deben representarse con un elemento
+\texttt{div} que contenga a los operandos transformados en elementos
+hijos, y que indique la operación con un elemento \texttt{p} que
+contenga un nodo de texto con el símbolo correspondiente a la operación
+--- en el caso de operaciones binarias, como la suma, ubique el símbolo
+entre los elementos hijos correspondientes a los operandos, y en el caso
+del negativo, ubique el símbolo \texttt{-} antes que el elemento hijo.
+
+Escriba su definición en términos de \texttt{cataExpresión} y utilice
+los combinadores para elementos de XHTML que definió previamente.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{expresionXHTML :: Expresión }\OtherTok{->} \DataTypeTok{Elemento}
+\NormalTok{expresionXHTML e}
+  \FunctionTok{=} \KeywordTok{case} \NormalTok{e }\KeywordTok{of}
+      \DataTypeTok{Literal}        \NormalTok{n     }\OtherTok{->} \NormalTok{showP n}
+      \DataTypeTok{Negativo}       \NormalTok{e     }\OtherTok{->} \NormalTok{divE [pE }\StringTok{"-"}\NormalTok{, expresionXHTML e]}
+      \DataTypeTok{Suma}           \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{divE [expresionXHTML e1, pE }\StringTok{"+"}\NormalTok{, expresionXHTML e2]}
+      \DataTypeTok{Resta}          \NormalTok{e1 e2 }\OtherTok{->} \NormalTok{divE [expresionXHTML e1, pE }\StringTok{"-"}\NormalTok{, expresionXHTML e2]}
+      \NormalTok{Multiplicación e1 e2 }\OtherTok{->} \NormalTok{divE [expresionXHTML e1, pE }\StringTok{"*"}\NormalTok{, expresionXHTML e2]}
+      \NormalTok{División       e1 e2 }\OtherTok{->} \NormalTok{divE [expresionXHTML e1, pE }\StringTok{"/"}\NormalTok{, expresionXHTML e2]}
+\end{Highlighting}
+\end{Shaded}
+
+Por ejemplo, el resultado de \texttt{expresiónXHTML t2} debería ser
+igual al de
+
+\begin{verbatim}
+Elemento "div" empty
+  [ Elemento "p" empty [Texto "27"]
+  , Elemento "p" empty [Texto "+" ]
+  , Elemento "p" empty [Texto "42"]
+  ]
+\end{verbatim}
+
+donde \texttt{empty} viene del módulo \texttt{Data.Map}.
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\textbf{Ejercicio 15} (1.25 puntos): Complete la siguiente definición
+que convierta un valor dado del tipo \texttt{Expresión} en un valor del
+tipo \texttt{Documento} que muestre información sobre la expresión
+aritmética dada en un documento XHTML. Debe usar los combinadores
+definidos en ejercicios previos para implantar esta función.
+
+Se espera que el documento generado sea lo más parecido posible al
+mostrado en la dirección
+\url{https://ldc.usb.ve/~05-38235/cursos/CI3661/2015AJ/expresión.xhtml}\footnote{Ese
+  ejemplo fue generado a partir de la expresión \texttt{t3}.}. En
+particular, debe mostrar:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  la representación textual de la expresión,
+\item
+  la estructura de la expresión convertida en elementos de XHTML usando
+  la función \texttt{expresiónXHTML},
+\item
+  el resultado de la evaluación numérica de la expresión,
+\item
+  la altura de la expresión,
+\item
+  el número de operaciones de la expresión, y
+\item
+  la lista de todos los literales numéricos que ocurren en la expresión.
+\end{itemize}
+
+Antes de cada una de esas secciones, incluya un elemento \texttt{h1} con
+el nombre de la sección.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{expresiónDocumento :: Expresión }\OtherTok{->} \DataTypeTok{Documento}
+\NormalTok{expresiónDocumento e = Documento (htmlE [headE [titleE }\StringTok{"Expresión"}\NormalTok{, styleE estilo], }
+                                         \NormalTok{bodyE [h1E }\StringTok{"Expresión original"}\NormalTok{, showP e, }
+                                                \NormalTok{h1E }\StringTok{"Estructura"}\NormalTok{, expresionXHTML e,}
+                                                \NormalTok{h1E }\StringTok{"Valor"}\NormalTok{, showP (evaluar' e),}
+                                                \NormalTok{h1E }\StringTok{"Altura"}\NormalTok{, showP (altura' e),}
+                                                \NormalTok{h1E }\StringTok{"Número de operaciones"}\NormalTok{, showP (operaciones e),}
+                                                \NormalTok{h1E }\StringTok{"Literales"}\NormalTok{, showP (literales' e)]}
+                                  \NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+La siguiente definición contiene el texto necesario a incluir en el
+elemento \texttt{style} del documento a generar. El elemento
+\texttt{style} con este contenido debe ser incluido en el elemento
+\texttt{head} del documento generado.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{estilo ::} \DataTypeTok{String}
+\NormalTok{estilo}
+  \FunctionTok{=} \NormalTok{unlines}
+    \NormalTok{[ }\StringTok{"div, p \{"}
+    \NormalTok{, }\StringTok{"  border: 1px solid black;"}
+    \NormalTok{, }\StringTok{"  float: left;"}
+    \NormalTok{, }\StringTok{"  margin: 1em;"}
+    \NormalTok{, }\StringTok{"\}"}
+    \NormalTok{, }\StringTok{"h1 \{"}
+    \NormalTok{, }\StringTok{"  clear: both;"}
+    \NormalTok{, }\StringTok{"\}"}
+    \NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\section{Programa principal}\label{programa-principal}
+
+Se define un programa principal para poder compilar y ejecutar este
+archivo:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{deriving} \KeywordTok{instance} \NormalTok{Generic Expresión}
+\KeywordTok{instance} \NormalTok{NFData Expresión}
+
+\OtherTok{main ::} \DataTypeTok{IO} \NormalTok{()}
+\NormalTok{main }\FunctionTok{=} \KeywordTok{do}
+  \NormalTok{args }\OtherTok{<-} \NormalTok{getArgs}
+  \KeywordTok{case} \NormalTok{args }\KeywordTok{of}
+    \NormalTok{(nombreArchivo : expresión}\DataTypeTok{Texto} \FunctionTok{:} \NormalTok{_) }\OtherTok{->} \KeywordTok{do}
+      \NormalTok{expresión <- pure $!! read expresión}\DataTypeTok{Texto}
+      \NormalTok{writeFile nombreArchivo . render $ expresiónDocumento expresión}
+
+    \NormalTok{_ }\OtherTok{->} \KeywordTok{do}
+      \NormalTok{progName }\OtherTok{<-} \NormalTok{getProgName}
+      \NormalTok{hPutStrLn stderr $ }\StringTok{"Uso: "} \NormalTok{++ progName ++ }\StringTok{" ARCHIVO.xhtml EXPRESIÓN"}
+\end{Highlighting}
+\end{Shaded}
+
+Puede compilar la fuente de este archivo con el comando
+
+\begin{verbatim}
+ghc tarea-práctica-funcional.lhs -o expresión
+\end{verbatim}
+
+y probar su solución con, por ejemplo, el comando
+
+\begin{verbatim}
+./expresión expresión.xhtml 'Suma (Literal 42) (Literal 27)'
+\end{verbatim}
