@@ -29,9 +29,9 @@ dividir
   rectángulo 
   = case esValida orientacion (anchura ima) (altura ima) of
                   False -> Nothing 
-                  otherwise -> case orientacion of 
+                  True  -> case orientacion of 
                     Horizontal -> Just (Hoja (rectánguloImagen arriba) :-: Hoja (rectánguloImagen abajo))
-                    otherwise -> Just (Hoja (rectánguloImagen izquierda) :|: Hoja (rectánguloImagen derecha))
+                    Vertical -> Just (Hoja (rectánguloImagen izquierda) :|: Hoja (rectánguloImagen derecha))
           where
             esValida Horizontal _ 1 = False
             esValida Vertical 1 _   = False
@@ -41,7 +41,23 @@ dividir
             ima = (imagen rectángulo)
 
 caminar :: [Paso] -> Diagrama -> Maybe Diagrama
-caminar = undefined
+caminar []     diagrama             = Just diagrama
+caminar _ (Hoja _)               = Nothing
+caminar (x:xs) (primero :-: segundo)  = case x of
+                                          Primero -> caminar xs primero
+                                          Segundo -> caminar xs segundo
+
+caminar (x:xs) (primero :|: segundo)  = case x of
+                                          Primero -> caminar xs primero
+                                          Segundo -> caminar xs segundo
+
 
 sustituir :: Diagrama -> [Paso] -> Diagrama -> Diagrama
-sustituir = undefined
+sustituir d   []   _          = d
+sustituir _    _    (Hoja r)  = Hoja r
+sustituir d  (x:xs) (primero :-: segundo) = case x of
+                                            Primero -> (sustituir d xs primero) :-: segundo
+                                            Segundo -> primero :-: (sustituir d xs segundo)
+sustituir d (x:xs) (primero :|: segundo) = case x of
+                                            Primero -> (sustituir d xs primero) :|: segundo
+                                            Segundo -> primero :|: (sustituir d xs segundo)
