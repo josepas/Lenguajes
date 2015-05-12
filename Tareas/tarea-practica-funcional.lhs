@@ -12,30 +12,11 @@ Integrantes del grupo:
 Introducción
 ============
 
-Este documento es el enunciado de la tarea práctica de programación funcional para CI3661 (el Laboratorio de Lenguajes de Programación 1) en Abril–Julio de 2015.  La fuente de este documento está escrita en *Literate Haskell* con comentarios en *Markdown*, por lo cual puede usarse para producir la versión PDF de este documento[^pandoc], y también puede suministrarse directamente al compilador de *Haskell* GHC como código fuente.
+Este documento soporta la tarea práctica de programación funcional para CI3661 (el Laboratorio de Lenguajes de Programación 1) en Abril–Julio de 2015.  
 
-[^pandoc]: Para esto se usa el programa *Pandoc* que, incidentalmente, está escrito en *Haskell*.
+Puede cargar la fuente de este archivo en GHCi directamente con el comando:
 
-Puede cargar la fuente de este archivo en GHCi directamente con el comando
-
-    ghci tarea-práctica-funcional
-
-Todas las líneas de este archivo que no comiencen con `>` son comentarios en el código.  Las líneas que sí comiencen con `>` serán interpretadas por el compilador de *Haskell* como código fuente.  A lo largo de este enunciado, se proveerán definiciones incompletas en *Haskell* que usted debe completar.  En particular, usted deberá sustituir todas las ocurrencias de `undefined` en este archivo con sus soluciones para que el programa cumpla con la funcionalidad esperada.
-
-
-
-Condiciones de entrega
-----------------------
-
-Esta tarea debe ser realizada por cada alumno de CI3661 en grupos de a lo sumo dos integrantes.  Debe entregar su solución en un archivo llamado `t2-XX-XXXXX_YY-YYYYY.lhs` (donde `XX-XXXXX` y `YY-YYYYY` deben ser sustituidos por los números de carné de los integrantes del grupo), o `t2-XX-XXXXX.lhs` para los casos excepcionales que realicen la tarea en forma individual, enviado adjunto a un correo electrónico titulado *[CI3661] Tarea 2* a las direcciones de *todos* los encargados del curso:
-
-*   Manuel Gómez     <manuel.gomez.ch@gmail.com>
-*   David Lilue      <dvdalilue@gmail.com>
-*   Ricardo Monascal <rmonascal@gmail.com>
-*   Wilmer Pereira   <wpereira@usb.ve>
-
-Debe enviar su solución antes de la medianoche entre el domingo 2015-05-03 y el lunes 2015-05-04 en hora legal de Venezuela.
-
+    ghci tarea-practica-funcional
 
 
 Declaraciones preliminares
@@ -45,9 +26,6 @@ En esta sección puede agregar todas las directivas necesarias para importar sí
 
 > {-# LANGUAGE DeriveGeneric #-}
 > {-# LANGUAGE FlexibleInstances #-}
-
-%{-# LANGUAGE LambdaCase #-}
-
 > {-# LANGUAGE StandaloneDeriving #-}
 > {-# LANGUAGE TypeSynonymInstances #-}
 >
@@ -107,8 +85,6 @@ En el contexto de *Haskell*, un **catamorfismo** es cualquier transformación de
 ---
 
 **Ejercicio 2** (0.5 puntos): Complete la siguiente definición que calcule el resultado de evaluar una expresión aritmética.
-
-%Aqui tenia Double entonces resolvi con fromInteger
 
 > evaluar :: Expresión -> Double
 > evaluar e
@@ -331,8 +307,6 @@ Combinadores
 
 ---
 
-
-
 Generación de XHTML
 -------------------
 
@@ -346,27 +320,20 @@ Se desea usar el método `render` para generar texto XHTML a partir de un valor 
 [^noshow]: Note que esta clase es estructuralmente idéntica a la clase `Show` de *Haskell*.  Sin embargo, recuerde que el propósito de la clase `Show` es construir representaciones textuales de valores de *Haskell* para asistir al programador a estudiar un tipo de datos y visualizar sus valores — la clase `RenderXHTML`, en cambio, existe para generar código XHTML a partir de algunos tipos de datos que puedan convertirse de esa manera.
 
 > instance RenderXHTML Documento where
->   render (Documento raiz)
->       = render raiz    
-
+>   render (Documento raíz)
+>     = encabezado ++ render raíz
+>     where
+>       encabezado
+>         = unlines
+>           [ "<?xml version='1.0' encoding='UTF-8'?>"
+>           , "<!DOCTYPE html"
+>           , "     PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'"
+>           , "     'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
+>           ]
 
 ---
 
 **Ejercicio 12** (1.25 puntos): Escriba una instancia de la clase `RenderXHTML` para el tipo `Atributos`.  Puede suponer que las claves de los diccionarios de atributos únicamente contienen nombres de atributos válidos para XHTML, y que los valores de atributos no contienen entidades ilegales en XHTML ni comillas — es decir, no es necesario que se preocupe por escapar el texto obtenido del diccionario de atributos.
-
-El texto generado debe corresponder a la lista de atributos que ocurre dentro de una etiqueta XHTML.  Por ejemplo, para el diccionario de atributos
-
-Nombre de atributo  Valor
-------------------- ------
-foo                 bar baz
-quux                meh
-wtf                 wow://such.example.com/amaze/
-
-debe generar el texto
-
-    foo='bar baz' quux='meh' wtf='wow://such.example.com/amaze/'
-
-El orden en que genere las especificaciones de atributos es irrelevante.
 
 > instance RenderXHTML Atributos where
 >   render = foldWithKey f "" 
@@ -388,7 +355,8 @@ o cualquier texto con el mismo significado en XHTML — el espacio en blanco, po
 >   render e 
 >     = case e of 
 >           Texto s -> s
->           Elemento s a xs -> "<" ++ s ++ render a ++ ">"  ++ (concat (map render xs))  ++ "</" ++ s ++ ">" 
+>           Elemento s a xs -> "<" ++ s ++ render a ++ ">"  ++ 
+>               (concat (map render xs))  ++ "</" ++ s ++ ">" 
 
 
 
@@ -400,10 +368,6 @@ XHTML para expresiones
 ----------------------
 
 **Ejercicio 14** (1.25 puntos): Complete la siguiente definición que convierta un valor dado del tipo `Expresión` en un valor del tipo `Elemento` que represente a la estructura de la expresión aritmética con un árbol de elementos XHTML.
-
-Los literales numéricos deben representarse con elementos `p` que contengan un nodo de texto con una representación textual del número.
-
-Las operaciones aritméticas deben representarse con un elemento `div` que contenga a los operandos transformados en elementos hijos, y que indique la operación con un elemento `p` que contenga un nodo de texto con el símbolo correspondiente a la operación — en el caso de operaciones binarias, como la suma, ubique el símbolo entre los elementos hijos correspondientes a los operandos, y en el caso del negativo, ubique el símbolo `-` antes que el elemento hijo.
 
 Escriba su definición en términos de `cataExpresión` y utilice los combinadores para elementos de XHTML que definió previamente.
 
@@ -417,32 +381,9 @@ Escriba su definición en términos de `cataExpresión` y utilice los combinador
 >       Multiplicación e1 e2 -> divE [expresionXHTML e1, pE "*", expresionXHTML e2]
 >       División       e1 e2 -> divE [expresionXHTML e1, pE "/", expresionXHTML e2]
 
-Por ejemplo, el resultado de `expresiónXHTML t2` debería ser igual al de
-
-    Elemento "div" empty
-      [ Elemento "p" empty [Texto "27"]
-      , Elemento "p" empty [Texto "+" ]
-      , Elemento "p" empty [Texto "42"]
-      ]
-
-donde `empty` viene del módulo `Data.Map`.
-
 ---
 
 **Ejercicio 15** (1.25 puntos): Complete la siguiente definición que convierta un valor dado del tipo `Expresión` en un valor del tipo `Documento` que muestre información sobre la expresión aritmética dada en un documento XHTML.  Debe usar los combinadores definidos en ejercicios previos para implantar esta función.
-
-Se espera que el documento generado sea lo más parecido posible al mostrado en la dirección <https://ldc.usb.ve/~05-38235/cursos/CI3661/2015AJ/expresión.xhtml>[^t3xhtml].  En particular, debe mostrar:
-
-*   la representación textual de la expresión,
-*   la estructura de la expresión convertida en elementos de XHTML usando la función `expresiónXHTML`,
-*   el resultado de la evaluación numérica de la expresión,
-*   la altura de la expresión,
-*   el número de operaciones de la expresión, y
-*   la lista de todos los literales numéricos que ocurren en la expresión.
-
-Antes de cada una de esas secciones, incluya un elemento `h1` con el nombre de la sección.
-
-[^t3xhtml]: Ese ejemplo fue generado a partir de la expresión `t3`.
 
 > expresiónDocumento :: Expresión -> Documento
 > expresiónDocumento e = Documento (htmlE [headE [titleE "Expresión", styleE estilo], 
@@ -450,7 +391,8 @@ Antes de cada una de esas secciones, incluya un elemento `h1` con el nombre de l
 >                                                 h1E "Estructura", expresionXHTML e,
 >                                                 h1E "Valor", showP (evaluar' e),
 >                                                 h1E "Altura", showP (altura' e),
->                                                 h1E "Número de operaciones", showP (operaciones e),
+>                                                 h1E "Número de operaciones", showP 
+>                                                     (operaciones e),
 >                                                 h1E "Literales", showP (literales' e)]
 >                                   ])
 
@@ -499,6 +441,3 @@ Puede compilar la fuente de este archivo con el comando
 
     ghc tarea-práctica-funcional.lhs -o expresión
 
-y probar su solución con, por ejemplo, el comando
-
-    ./expresión expresión.xhtml 'Suma (Literal 42) (Literal 27)'

@@ -1,1 +1,0 @@
-myLast x = last x

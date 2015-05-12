@@ -1,1 +1,0 @@
-myButLast = last . init
