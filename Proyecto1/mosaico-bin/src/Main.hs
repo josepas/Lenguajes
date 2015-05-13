@@ -6,15 +6,29 @@ import Graphics.Mosaico.Ventana  (Ventana, cerrar, crearVentana, leerTecla, most
 
 import Diagramas (Orientación(Horizontal, Vertical), caminar, dividir, rectánguloImagen, sustituir)
 
---define GDK_KEY_KP_Left 0xff96
---define GDK_KEY_KP_Up 0xff97
---define GDK_KEY_KP_Right 0xff98
---define GDK_KEY_KP_Down 0xff99
---define GDK_KEY_q 0x071
--- BackSpace
 
 ciclo :: Ventana -> Diagrama -> [Paso] -> IO ()
-ciclo vent = 
+ciclo vent (Hoja _) xs
+
+ciclo vent dia@(primero :-: segundo) xs = case leerTecla vent of
+										Left 		-> return () 
+										Right 		-> return ()
+										Up 			-> ciclo vent dia (xs ++ Primero)
+										Down 		-> ciclo vent dia (xs ++ Segundo)
+										BackSpace	-> ciclo vent PADRE
+										q 			-> cerrar vent
+
+ciclo vent (primero :|: segundo) xs	= case leerTecla vent of
+										Left 		-> ciclo vent dia (xs ++ Primero) 
+										Right 		-> ciclo vent dia (xs ++ Segundo)
+										Up 			-> return ()
+										Down 		-> return ()
+										BackSpace	-> ciclo vent PADRE (init xs)
+										q 			-> cerrar vent
+
+ciclo vent dia xs 					= case leerTecla vent of
+										Left = 
+
 
 
 
