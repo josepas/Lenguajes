@@ -8,26 +8,66 @@ import Diagramas (Orientación(Horizontal, Vertical), caminar, dividir, rectáng
 
 
 ciclo :: Ventana -> Diagrama -> [Paso] -> IO ()
-ciclo vent (Hoja _) xs
+ciclo ventana 
+    diagrama pasos 
+    = do
+        mostrar ventana pasos diagrama
+        tecla <- leerTecla ventana
+        case tecla of
+            Nothing -> putStrLn "Ventana cerrada"
+            
+            Just "q" -> cerrar ventana
 
-ciclo vent dia@(primero :-: segundo) xs = case leerTecla vent of
-										Left 		-> return () 
-										Right 		-> return ()
-										Up 			-> ciclo vent dia (xs ++ Primero)
-										Down 		-> ciclo vent dia (xs ++ Segundo)
-										BackSpace	-> ciclo vent PADRE
-										q 			-> cerrar vent
+            Just "BackSpace" -> case pasos of 
+                [] -> continuar
+                _ -> ciclo ventana diagrama (init pasos)
 
-ciclo vent (primero :|: segundo) xs	= case leerTecla vent of
-										Left 		-> ciclo vent dia (xs ++ Primero) 
-										Right 		-> ciclo vent dia (xs ++ Segundo)
-										Up 			-> return ()
-										Down 		-> return ()
-										BackSpace	-> ciclo vent PADRE (init xs)
-										q 			-> cerrar vent
+            Just "Up" -> case actual of
+                Nothing -> do
+                    putStrLn "Los pasos especifican un diagrama que no existe."
+                    cerrar ventana
+                Just (Hoja rectangulo) -> case divididoH rectangulo of
+                    Nothing -> continuar
+                    Just d -> ciclo ventana (sustituir d pasos diagrama) (pasos ++ [Primero])
+                Just (_ :-: _) -> ciclo ventana diagrama (pasos ++ [Primero])
+                Just (_ :|: _) -> continuar
 
-ciclo vent dia xs 					= case leerTecla vent of
-										Left = 
+            Just "Down" -> case actual of
+                Nothing -> do
+                    putStrLn "Los pasos especifican un diagrama que no existe."
+                    cerrar ventana
+                Just (Hoja rectangulo) -> case divididoH rectangulo of
+                    Nothing -> continuar
+                    Just d -> ciclo ventana (sustituir d pasos diagrama) (pasos ++ [Segundo])
+                Just (_ :-: _) -> ciclo ventana diagrama (pasos ++ [Segundo])
+                Just (_ :|: _) -> continuar
+
+            Just "Left" -> case actual of
+                Nothing -> do
+                    putStrLn "Los pasos especifican un diagrama que no existe."
+                    cerrar ventana
+                Just (Hoja rectangulo) -> case divididoV rectangulo of
+                    Nothing -> continuar
+                    Just d -> ciclo ventana (sustituir d pasos diagrama) (pasos ++ [Primero])
+                Just (_ :|: _) -> ciclo ventana diagrama (pasos ++ [Primero])
+                Just (_ :-: _) -> continuar
+            
+            Just "Right" -> case actual of
+                Nothing -> do
+                    putStrLn "Los pasos especifican un diagrama que no existe."
+                    cerrar ventana
+                Just (Hoja rectangulo) -> case divididoV rectangulo of
+                    Nothing -> continuar
+                    Just d -> ciclo ventana (sustituir d pasos diagrama) (pasos ++ [Segundo])
+                Just (_ :|: _) -> ciclo ventana diagrama (pasos ++ [Segundo])
+                Just (_ :-: _) -> continuar
+
+            Just _ -> continuar
+    where 
+        divididoH = dividir Horizontal
+        divididoV = dividir Vertical
+        actual = caminar pasos diagrama
+        continuar = ciclo ventana diagrama pasos
 
 
 
