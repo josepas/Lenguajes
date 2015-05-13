@@ -4,6 +4,8 @@ import Graphics.Mosaico.Diagrama (Diagrama((:-:), (:|:), Hoja), Paso(Primero, Se
 import Graphics.Mosaico.Imagen   (Imagen(Imagen, altura, anchura, datos), leerImagen)
 import Graphics.Mosaico.Ventana  (Ventana, cerrar, crearVentana, leerTecla, mostrar)
 
+import System.Environment (getArgs)
+
 import Diagramas (Orientación(Horizontal, Vertical), caminar, dividir, rectánguloImagen, sustituir)
 
 
@@ -73,5 +75,22 @@ ciclo ventana
 
 
 main :: IO ()
-main = undefined
+main = do 
+        argumentos <- getArgs
+        if (length argumentos) /= 1 then
+            putStrLn "Uso: mosaico imagen"
+        else 
+            do 
+            leido <- leerImagen (head argumentos)
+            case leido of
+                Left s -> putStrLn ("Error: " ++ s)
+                Right imagen -> do 
+                    ventana <- crearVentana 600 (round ((alto imagen :: Double) /(ancho imagen :: Double)*600))
+                    let diagrama = Hoja (rectánguloImagen imagen)
+                    ciclo ventana diagrama []
+    where
+        alto = (fromInteger . altura) 
+        ancho = (fromInteger . anchura) 
+
+
 
