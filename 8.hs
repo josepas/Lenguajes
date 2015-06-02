@@ -1,1 +1,0 @@
-compress :: [a] -> [a]
