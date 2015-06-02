@@ -23,11 +23,15 @@ class RT
     def initialize(n, *sons)
         @n = n;
         @ss = [];
-        sons.each {|x| @ss << x};
+        sons.each do |x| 
+            @ss << x;
+        end
     end
 
     def each &block
-        @ss.each {|x| yield x}
+        @ss.each do |x| 
+            yield x
+        end
     end
 
 end

@@ -13,7 +13,6 @@ class Strong < Visitante
 end
 
 class Node
-
     attr_reader :x, :y
 
     def initialize x, y
