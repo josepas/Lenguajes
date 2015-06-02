@@ -27,7 +27,7 @@ class RT
     end
 
     def each &block
-    # ...
+        @ss.each {|x| yield x}
     end
 
 end
