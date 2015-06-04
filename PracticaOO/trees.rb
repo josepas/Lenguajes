@@ -52,4 +52,11 @@ child_1.l = grand_child_1
 root.l = child_1
 root.r = child_2
 
+puts "arbol original!"
 root.dfs {|x| puts x.n}
+
+root.dfs! {|x| x.n * 2}
+
+puts "~~~ arbol * 2 ~~~"
+root.dfs {|x| puts x.n}
+
