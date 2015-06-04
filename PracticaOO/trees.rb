@@ -18,8 +18,6 @@ class BT
         yield r;    
     end
 
-
-
 end
 
 class RT

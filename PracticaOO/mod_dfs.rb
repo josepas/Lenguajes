@@ -7,6 +7,5 @@ module Traverse
             child.dfs &block unless child == nil 
         end
     end
-
     
 end
