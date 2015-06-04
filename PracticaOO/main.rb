@@ -22,8 +22,11 @@ p = BT.new(:ptd, z, w)
 q = BT.new(Node.new(5,29), x, y)
 arbol2 = BT.new(:Ktbzr, q, p)
 
-puts "--> Arbol1:"
+puts "--> Arbol1(dfs):"
 arbol.dfs { |x| puts x.n }
+
+puts "--> Arbol1(bfs):"
+arbol.bfs { |x| puts x.n }
 
 puts "--> Arbol2:"
 v = Next.new

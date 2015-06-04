@@ -18,3 +18,19 @@ module DFS
 
 
 end
+
+module BFS
+
+    def bfs &block
+        cola = []
+        cola << self
+        while(!cola.empty?) 
+            node = cola.shift
+            yield node
+            node.each do |child|
+                cola << child unless child == nil
+            end
+        end
+    end
+
+end
