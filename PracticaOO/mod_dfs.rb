@@ -1,4 +1,4 @@
-module Traverse
+module DFS
     
     def dfs &block
         node = self

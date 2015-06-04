@@ -5,7 +5,7 @@ class BT
     attr_accessor   :n, # Objeto que guarda el nodo
                     :l, # Hijo izquierdo (BT)
                     :r # Hijo derecho (BT)
-    include Traverse
+    include DFS
 
     def initialize(n, l=nil, r=nil)
         @n = n;
@@ -13,7 +13,7 @@ class BT
         @r = r;
     end
     
-    def each &block
+    def each
         yield l;
         yield r;    
     end
@@ -24,7 +24,7 @@ class RT
     attr_accessor   :n # Objeto que guarda el nodo
     attr_reader     :ss # Arreglo de hijos
 
-    include Traverse
+    include DFS
 
     def initialize(n, *sons)
         @n = n;
@@ -34,7 +34,7 @@ class RT
         end
     end
 
-    def each &block
+    def each
         @ss.each do |x| 
             yield x
         end
