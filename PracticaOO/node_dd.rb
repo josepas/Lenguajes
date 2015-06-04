@@ -24,7 +24,7 @@ class Node
     end
 
     def to_s
-        #
+        puts "#{x} - #{y}"
     end
 
 end
