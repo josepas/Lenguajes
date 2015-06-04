@@ -16,7 +16,8 @@ class Node
     attr_reader :x, :y
 
     def initialize x, y
-        #
+        @x = x
+        @y = y
     end
 
     def visitado_por v
@@ -24,7 +25,7 @@ class Node
     end
 
     def to_s
-        #
+        puts "#{x} - #{y}"
     end
 
 end
