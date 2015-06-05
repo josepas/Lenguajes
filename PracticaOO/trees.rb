@@ -5,8 +5,6 @@ class BT
     attr_accessor   :n # Objeto que guarda el nodo
     attr_reader     :l, # Hijo izquierdo (BT)
                     :r # Hijo derecho (BT)
-    include DFS
-    include BFS
 
     def initialize(n, l=nil, r=nil)
         @n = n;
@@ -24,8 +22,6 @@ end
 class RT
     attr_accessor   :n # Objeto que guarda el nodo
     attr_reader     :ss # Arreglo de hijos
-
-    include DFS
 
     def initialize(n, *sons)
         @n = n;
