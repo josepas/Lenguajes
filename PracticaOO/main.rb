@@ -17,7 +17,7 @@ arbol = BT.new(1, dos, tres)
 x = BT.new(:Z)
 y = BT.new(:btzkpthdqz)
 z = BT.new(:ohcz)
-w = BT.new(:czkd)
+w = BT.new(:czkd,BT.new(9))
 p = BT.new(:ptd, z, w)
 q = BT.new(Node.new(5,29), x, y)
 arbol2 = BT.new(:Ktbzr, q, p)
@@ -29,5 +29,16 @@ puts "--> Arbol1(bfs):"
 arbol.bfs { |x| puts x.n }
 
 puts "--> Arbol2:"
+arbol2.dfs { |x| puts x.n }
+
+puts "--> Arbol2 (Next) :"
 v = Next.new
+arbol2.dfs { |x| puts (x.n.visitado_por v) }
+
+puts "--> Arbol2 (Mirror) :"
+v = Mirror.new
+arbol2.dfs { |x| puts (x.n.visitado_por v) }
+
+puts "--> Arbol2 (Strong) :"
+v = Strong.new
 arbol2.dfs { |x| puts (x.n.visitado_por v) }
