@@ -4,6 +4,8 @@ module Monoid
         # mappend :: a -> a -> a
     
     # mconcat :: [a] -> a
+    
+
     def mconcat(as)
         acc = mempty
         for i in as.each
@@ -27,7 +29,10 @@ end
 # All
 class TrueClass
     extend Monoid
-    mempty = true
+    def TrueClass.mempty
+        true
+    end
+    
     def TrueClass.mappend(a,b)
         a and b
     end
@@ -36,15 +41,22 @@ end
 # Any
 class FalseClass
     extend Monoid
-    mempty = false
+    def FalseClass.mempty
+        false
+    end
+
     def FalseClass.mappend(a,b)
         a or b
     end
+
 end
 
 class String
     extend Monoid
-    mempty = ""
+    def String.mempty
+        ""
+    end
+
     def String.mappend(a,b)
         a + b
     end
@@ -52,6 +64,14 @@ end
 
 class Fixnum
     extend Monoid
+    def Fixnum.mempty
+        0
+    end
+
+    def Fixnum.mappend(a,b)
+        a + b
+    end
+
 end
 
 # Functor Instances
