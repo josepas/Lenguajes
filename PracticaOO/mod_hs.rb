@@ -22,7 +22,6 @@ module Functor
     # (<$) :: a -> f b -> f a
     def inj a, fb
         fmap(fb) {a}
-        fb
     end
     
 end
@@ -82,9 +81,11 @@ end
 class String
     extend Functor
     def String.fmap(fa, &block)
-        fa.split("") do |x|
-            x = yield x
+        r = ""
+        fa.split("").each do
+           r << yield
         end
+        r
     end
 
 end
@@ -92,8 +93,10 @@ end
 class Fixnum
     extend Functor
     def Fixnum.fmap(fa, &block)
-        fa.each do |x|
-            x = yield x
+        r = []
+        fa.each do
+            r << yield
         end
+        r
     end
 end
