@@ -21,7 +21,10 @@ module Functor
 
     # (<$) :: a -> f b -> f a
     def inj a, fb
+        fmap(fb) {a}
+        fb
     end
+    
 end
 
 # Monoid Instances
@@ -78,8 +81,19 @@ end
 
 class String
     extend Functor
+    def String.fmap(fa, &block)
+        fa.split("") do |x|
+            x = yield x
+        end
+    end
+
 end
 
 class Fixnum
     extend Functor
+    def Fixnum.fmap(fa, &block)
+        fa.each do |x|
+            x = yield x
+        end
+    end
 end
