@@ -13,8 +13,8 @@ class BT
     end
     
     def each
-        yield l;
-        yield r;    
+        yield l;    # Primero se itera sobre el hijo izq
+        yield r;    # Y luego por el derecho
     end
 
 end
@@ -26,14 +26,14 @@ class RT
     def initialize(n, *sons)
         @n = n;
         @ss = [];
-        sons.each do |x| 
-            @ss << x;
+        sons.each do |x|    # Se itera sobre los elementos de la lista sons
+            @ss << x;       # Y se agregan a la lista de hijos ss
         end
     end
 
     def each
-        @ss.each do |x| 
-            yield x
+        @ss.each do |x|     # Se itera en el mismo orden de la lista de hijos.
+            yield x         
         end
     end
 

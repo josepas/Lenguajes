@@ -1,5 +1,11 @@
 module DFS
     
+    #####################
+    # Dfs
+    # Primero se devuelve el nodo actual y luego se llama recursivamente a sus hijos
+    # El resultado del yield no se guarda
+    #####################
+
     def dfs &block
         node = self
         yield node
@@ -8,6 +14,12 @@ module DFS
         end
     end
 
+    #####################
+    # Dfs!
+    # Al igual que en DFS se procesa el nodo y luego sus hijos
+    # El resultado del yield se almacena en el nodo para modificar el arbol
+    #####################
+
     def dfs! &block
         node = self
         node.n = yield node
@@ -15,21 +27,5 @@ module DFS
             child.dfs! &block unless child == nil 
         end
     end
-
 end
 
-module BFS
-
-    def bfs &block
-        cola = []
-        cola << self
-        while(!cola.empty?) 
-            node = cola.shift
-            yield node
-            node.each do |child|
-                cola << child unless child == nil
-            end
-        end
-    end
-
-end

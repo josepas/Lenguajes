@@ -1,3 +1,16 @@
+#####################
+# Visitantes:
+# 
+# Para cada visitante se definen tres metodos:
+# -visitarNode: metodo para visitar elementos de clase Node.
+# -visitarFixnum: metodo para visitar un fixnum.
+# -visitarSymbol: metodo para visitar un simbolo.
+#
+# Cada objeto a ser visitado llamara al metodo correspondiente 
+# con su clase.
+#
+#####################
+
 class Visitante; end
 
 class Mirror < Visitante
@@ -47,6 +60,15 @@ class Strong < Visitante
     end
 end
 
+#####################
+# Clase Node:
+# 
+# Se define el inicializador y el to_s.
+# Ademas se define visitado_por llamando al metodo
+# visitarNode del visitante recibido.
+# 
+#####################
+
 class Node
     attr_reader :x, :y
 
@@ -64,6 +86,15 @@ class Node
     end
 
 end
+
+#####################
+# Clases Fixnum y Symbol:
+# 
+# A ambas clases se les agrega el metodo visitado_por
+# para que las instancias de Fixnum y Symbol puedan ser
+# visitadas.
+# 
+#####################
 
 class Fixnum
     def visitado_por v

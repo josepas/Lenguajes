@@ -1,3 +1,12 @@
+#####################
+# Modulo Monoid
+# 
+# Para extender Monoid se debera implementar dos funciones:
+# mempty: elemento neutro de la clase.
+# mappend: operación asociada al Monoide.
+# 
+#####################
+
 module Monoid
     #Minimal implementation
         # mempty  :: a
@@ -5,6 +14,14 @@ module Monoid
     
     # mconcat :: [a] -> a
     
+    #####################
+    # mconcat
+    # 
+    # Se define un acumulador cuyo valor inicial es el mempty de cada clase.
+    # Se realiza mappend con el acumulador y cada uno de los elementos pasados
+    # en la lista as.
+    # 
+    #####################
 
     def mconcat(as)
         acc = mempty
@@ -15,11 +32,28 @@ module Monoid
     end
 end
 
+#####################
+# Modulo Functor
+# 
+# Para extender Functor se debera implementar fmap,
+# la cual mapea una funcion sobre todos los elementos del functor.
+# 
+#####################
+
 module Functor
     #Minimal implementation
         # fmap :: (a -> b) -> f a -> f b
 
     # (<$) :: a -> f b -> f a
+
+    #####################
+    # inj
+    # 
+    # Sobre los elementos del functor correspondiente
+    # se mapea una funcion que simplemente devuelve el elemento a.
+    # 
+    #####################
+
     def inj a, fb
         fmap(fb) {a}
     end
