@@ -1,3 +1,14 @@
+#####################
+# trees.rb
+# 
+# Autores:
+#   Gustavo Gutierrez   11-10428
+#   Jose Pascarella     11-10743
+# 
+# Ultima modificacion 07/06/2015
+# 
+#####################
+
 $LOAD_PATH << '.' 
 require 'mod_dfs'
 

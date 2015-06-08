@@ -1,4 +1,15 @@
 #####################
+# mod_hs.rb
+# 
+# Autores:
+#   Gustavo Gutierrez   11-10428
+#   Jose Pascarella     11-10743
+# 
+# Ultima modificacion 07/06/2015
+# 
+#####################
+
+#####################
 # Modulo Monoid
 # 
 # Para extender Monoid se debera implementar dos funciones:
