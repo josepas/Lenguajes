@@ -20,9 +20,11 @@ saltoEnPosicion([F1|FS], N, X, Y, Sol) :-
 salto([F1|FS], N, Sol) :- 
     tableroValido([F1|FS]), nonvar(N), N >= 0,
     length([F1|FS],LX), length(F1,LY),
-    X >= 0, X =< LX, 
-    Y >= 0, Y < LY, 
+    XH is LX -1, YH is LY -1,
+    between(0,XH,X), between(0,YH,Y), 
     encontrar([F1|FS],N,X,Y,Sol,LX,LY).
+
+
 
 encontrar(Tablero, 0, X, Y, solucion([I],X,Y,[]),LX,LY) :-
     X >= 0, X < LX, Y >= 0, Y < LY,
